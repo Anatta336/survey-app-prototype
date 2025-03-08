@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_prototype/src/job_detail/job_controller.dart';
+import 'package:survey_prototype/src/job_detail/survey_questions.dart';
+import 'package:survey_prototype/src/user/user_controller.dart';
 
 import 'address_confirm.dart';
 
@@ -93,21 +95,22 @@ class _JobTabBarState extends State<JobTabBar> {
               physics: jobController.isAddressConfirmed
                   ? null
                   : const NeverScrollableScrollPhysics(),
-              children: const [
-                AddressConfirm(),
+              children: [
+                const AddressConfirm(),
 
                 // Documents tab - placeholder
-                Center(
+                const Center(
                   child: Text('Documents will be displayed here'),
                 ),
 
-                // Survey tab - placeholder
-                Center(
-                  child: Text('Survey information will be displayed here'),
+                Consumer<UserController>(
+                  builder: (context, userController, child) {
+                    return SurveyQuestions(userController: userController);
+                  },
                 ),
 
                 // Photos tab - placeholder
-                Center(
+                const Center(
                   child: Text('Photos will be displayed here'),
                 ),
               ],

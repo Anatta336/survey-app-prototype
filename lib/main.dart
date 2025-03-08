@@ -1,6 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realm/realm.dart';
+import 'package:survey_prototype/src/models/answer_model.dart';
+import 'package:survey_prototype/src/models/question_factory.dart';
+import 'package:survey_prototype/src/models/question_model.dart';
+import 'package:survey_prototype/src/providers/realm_provider.dart';
 import 'package:survey_prototype/src/user/user_controller.dart';
 
 import 'src/app.dart';
@@ -13,13 +19,35 @@ void main() async {
 
   // If adding more models, add them to the schema list here.
   final config = Configuration.local(
-    [Job.schema],
+    [Job.schema, Question.schema, Answer.schema],
 
     // If there's any changes to the database schema, just drop the existing one.
     shouldDeleteIfMigrationNeeded: true,
   );
   final realm = Realm(config);
+  seed(realm);
 
+  final jobsListController = JobsListController(realm);
+  await jobsListController.loadJobs();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => userController),
+        ChangeNotifierProvider(create: (context) => jobsListController),
+      ],
+      child: RealmProvider(
+        realm: realm,
+        child: MyApp(
+          realm:
+              realm, // TODO: no need to pass it down now, can use RealmProvider.of(context)
+        ),
+      ),
+    ),
+  );
+}
+
+void seed(Realm realm) {
   realm.write(() {
     realm.add(
       JobFactory.create(
@@ -52,18 +80,23 @@ void main() async {
     );
   });
 
-  final jobsListController = JobsListController(realm);
-  await jobsListController.loadJobs();
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => userController),
-        ChangeNotifierProvider(create: (context) => jobsListController),
-      ],
-      child: MyApp(
-        realm: realm,
+  List<Question> questionsToAdd = [];
+  var random = Random();
+  for (var i = 1; i <= 32; i++) {
+    questionsToAdd.add(
+      QuestionFactory.create(
+        id: i,
+        questionType:
+            QuestionType.values[random.nextInt(QuestionType.values.length)],
+        userType: UserType.values[random.nextInt(UserType.values.length)],
+        questionText: 'Example question $i.',
       ),
-    ),
-  );
+    );
+  }
+
+  realm.write(() {
+    realm.addAll<Question>(questionsToAdd, update: true);
+  });
+
+  print('Seeded database locally');
 }

@@ -36,9 +36,12 @@ class _AddressConfirmContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text('Address Confirmation',
+            style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 16),
         if (job.addressLine1.isNotEmpty) Text(job.addressLine1),
         if (job.addressLine2.isNotEmpty) Text(job.addressLine2),
         if (job.addressLine3.isNotEmpty) Text(job.addressLine3),
