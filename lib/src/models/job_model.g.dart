@@ -16,8 +16,12 @@ class Job extends _Job with RealmEntity, RealmObjectBase, RealmObject {
     String addressLine2,
     String addressLine3,
     String addressLine4,
-    String postcode,
-  ) {
+    String postcode, {
+    DateTime? addressConfirmedAt,
+    DateTime? documentsReadAt,
+    DateTime? surveyorCompletedAt,
+    DateTime? engineerCompletedAt,
+  }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, 'surveyorId', surveyorId);
     RealmObjectBase.set(this, 'engineerId', engineerId);
@@ -27,6 +31,10 @@ class Job extends _Job with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'addressLine3', addressLine3);
     RealmObjectBase.set(this, 'addressLine4', addressLine4);
     RealmObjectBase.set(this, 'postcode', postcode);
+    RealmObjectBase.set(this, 'addressConfirmedAt', addressConfirmedAt);
+    RealmObjectBase.set(this, 'documentsReadAt', documentsReadAt);
+    RealmObjectBase.set(this, 'surveyorCompletedAt', surveyorCompletedAt);
+    RealmObjectBase.set(this, 'engineerCompletedAt', engineerCompletedAt);
   }
 
   Job._();
@@ -87,6 +95,34 @@ class Job extends _Job with RealmEntity, RealmObjectBase, RealmObject {
   set postcode(String value) => RealmObjectBase.set(this, 'postcode', value);
 
   @override
+  DateTime? get addressConfirmedAt =>
+      RealmObjectBase.get<DateTime>(this, 'addressConfirmedAt') as DateTime?;
+  @override
+  set addressConfirmedAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'addressConfirmedAt', value);
+
+  @override
+  DateTime? get documentsReadAt =>
+      RealmObjectBase.get<DateTime>(this, 'documentsReadAt') as DateTime?;
+  @override
+  set documentsReadAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'documentsReadAt', value);
+
+  @override
+  DateTime? get surveyorCompletedAt =>
+      RealmObjectBase.get<DateTime>(this, 'surveyorCompletedAt') as DateTime?;
+  @override
+  set surveyorCompletedAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'surveyorCompletedAt', value);
+
+  @override
+  DateTime? get engineerCompletedAt =>
+      RealmObjectBase.get<DateTime>(this, 'engineerCompletedAt') as DateTime?;
+  @override
+  set engineerCompletedAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'engineerCompletedAt', value);
+
+  @override
   Stream<RealmObjectChanges<Job>> get changes =>
       RealmObjectBase.getChanges<Job>(this);
 
@@ -107,6 +143,14 @@ class Job extends _Job with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('addressLine3', RealmPropertyType.string),
       SchemaProperty('addressLine4', RealmPropertyType.string),
       SchemaProperty('postcode', RealmPropertyType.string),
+      SchemaProperty('addressConfirmedAt', RealmPropertyType.timestamp,
+          optional: true),
+      SchemaProperty('documentsReadAt', RealmPropertyType.timestamp,
+          optional: true),
+      SchemaProperty('surveyorCompletedAt', RealmPropertyType.timestamp,
+          optional: true),
+      SchemaProperty('engineerCompletedAt', RealmPropertyType.timestamp,
+          optional: true),
     ]);
   }
 }

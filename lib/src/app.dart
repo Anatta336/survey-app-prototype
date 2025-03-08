@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
       title: 'Survey Prototype',
 
       theme: ThemeData(
-        primarySwatch: Colors.purple,
+        primarySwatch: Colors.blueGrey,
       ),
 
       // Define a function to handle named routes in order to support

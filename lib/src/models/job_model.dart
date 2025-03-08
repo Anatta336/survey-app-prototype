@@ -20,5 +20,9 @@ class _Job {
   late String addressLine4;
 
   late String postcode;
-  // late DateTime? completedAt;
+
+  late DateTime? addressConfirmedAt;
+  late DateTime? documentsReadAt; // Do this per document instead?
+  late DateTime? surveyorCompletedAt;
+  late DateTime? engineerCompletedAt;
 }
