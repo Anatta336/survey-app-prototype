@@ -1,0 +1,3 @@
+# To generate the images we're ignoring here: `dart run flutter_native_splash:create`
+*.png
+!.gitignore
