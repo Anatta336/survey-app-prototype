@@ -10,7 +10,7 @@ import 'package:survey_prototype/src/providers/realm_provider.dart';
 import 'package:survey_prototype/src/user/user_controller.dart';
 
 import 'src/app.dart';
-import 'src/jobs_list/jobs_list_controller.dart';
+import 'src/jobs_list/job_list_controller.dart';
 import 'src/models/job_model.dart';
 import 'src/models/job_factory.dart';
 
@@ -27,7 +27,7 @@ void main() async {
   final realm = Realm(config);
   seed(realm);
 
-  final jobsListController = JobsListController(realm, userController);
+  final jobsListController = JobListController(realm, userController);
   jobsListController.refreshJobs();
 
   runApp(

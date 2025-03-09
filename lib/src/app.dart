@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'job_detail/job_detail_view.dart';
-import 'jobs_list/jobs_list_view.dart';
+import 'jobs_list/job_list_view.dart';
 import 'models/job_model.dart';
 import 'providers/realm_provider.dart';
 
@@ -53,16 +53,16 @@ class MyApp extends StatelessWidget {
               final job = realm.find<Job>(routeSettings.arguments as int);
 
               if (job == null) {
-                return const JobsListView();
+                return const JobListView();
               }
               return JobDetailView(job: job);
             }
 
             // These routes don't need any arguments.
             switch (routeSettings.name) {
-              case JobsListView.routeName:
+              case JobListView.routeName:
               default:
-                return const JobsListView();
+                return const JobListView();
             }
           },
         );

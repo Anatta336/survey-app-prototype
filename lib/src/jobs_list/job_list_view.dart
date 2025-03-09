@@ -3,19 +3,19 @@ import 'package:provider/provider.dart';
 import 'package:survey_prototype/src/job_detail/job_detail_view.dart';
 import 'package:survey_prototype/src/user/user_controller.dart';
 
-import 'jobs_list_controller.dart';
+import 'job_list_controller.dart';
 
-/// Displays a list of Jobs.
-class JobsListView extends StatelessWidget {
+/// Displays a list of Jobs. Which jobs to show are decided by JobsListController.
+class JobListView extends StatelessWidget {
   static const routeName = '/jobs';
 
-  const JobsListView({
+  const JobListView({
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<JobsListController, UserController>(
+    return Consumer2<JobListController, UserController>(
       builder: (context, jobsListController, userController, child) {
         return Scaffold(
           appBar: AppBar(

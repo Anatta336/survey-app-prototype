@@ -5,8 +5,8 @@ import 'package:survey_prototype/src/user/user_controller.dart';
 import '../models/job_model.dart';
 
 /// A class that Widgets can interact with to filter and access jobs.
-class JobsListController with ChangeNotifier {
-  JobsListController(
+class JobListController with ChangeNotifier {
+  JobListController(
     this._realm,
     this._userController,
   ) {
