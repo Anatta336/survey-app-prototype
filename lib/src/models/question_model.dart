@@ -11,6 +11,7 @@ enum QuestionType {
   yesNo,
   multipleChoice,
   text,
+  checklist,
 }
 
 @RealmModel()

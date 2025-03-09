@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 
-enum YesNoAnswer {
-  unanswered,
-  yes,
-  no,
-}
-
 /// A widget that presents a yes/no question to the user.
-class YesNoQuestion extends StatefulWidget {
+class ChecklistQuestion extends StatefulWidget {
   /// The text of the question to be displayed.
   final String questionText;
 
@@ -15,19 +9,19 @@ class YesNoQuestion extends StatefulWidget {
   final Function(String answer, String? reasonCannot)? onAnswered;
 
   /// Creates a yes/no question widget.
-  const YesNoQuestion({
+  const ChecklistQuestion({
     Key? key,
     required this.questionText,
     this.onAnswered,
   }) : super(key: key);
 
   @override
-  State<YesNoQuestion> createState() => _YesNoQuestionState();
+  State<ChecklistQuestion> createState() => _ChecklistQuestionState();
 }
 
-class _YesNoQuestionState extends State<YesNoQuestion> {
-  YesNoAnswer _selectedAnswer = YesNoAnswer.unanswered;
-  bool _cannotAnswer = false;
+class _ChecklistQuestionState extends State<ChecklistQuestion> {
+  bool _isDone = false;
+  bool _cannotComplete = false;
   final TextEditingController _reasonController = TextEditingController();
 
   @override
@@ -36,19 +30,19 @@ class _YesNoQuestionState extends State<YesNoQuestion> {
     super.dispose();
   }
 
-  void _selectAnswer(YesNoAnswer answer) {
+  void _markDone() {
     setState(() {
-      _selectedAnswer = answer;
-      _cannotAnswer = false;
+      _isDone = true;
+      _cannotComplete = false;
     });
 
     reportAnswer();
   }
 
-  void _selectCannotAnswer() {
+  void _markCannotComplete() {
     setState(() {
-      _selectedAnswer = YesNoAnswer.unanswered;
-      _cannotAnswer = true;
+      _isDone = false;
+      _cannotComplete = true;
     });
 
     reportAnswer();
@@ -58,8 +52,8 @@ class _YesNoQuestionState extends State<YesNoQuestion> {
     if (widget.onAnswered == null) {
       return;
     }
-    String answerText = _selectedAnswer.toString().split('.').last;
-    String? reason = _cannotAnswer ? _reasonController.text : null;
+    String answerText = _isDone ? 'Done' : 'Not Completed';
+    String? reason = _cannotComplete ? _reasonController.text : null;
     widget.onAnswered!(answerText, reason);
   }
 
@@ -77,52 +71,36 @@ class _YesNoQuestionState extends State<YesNoQuestion> {
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: ElevatedButton(
-                onPressed: () => _selectAnswer(YesNoAnswer.yes),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _selectedAnswer == YesNoAnswer.yes
-                      ? Theme.of(context).highlightColor
-                      : null,
-                  foregroundColor:
-                      _selectedAnswer == YesNoAnswer.yes ? Colors.white : null,
-                ),
-                child: const Text('Yes'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: ElevatedButton(
-                onPressed: () => _selectAnswer(YesNoAnswer.no),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _selectedAnswer == YesNoAnswer.no
-                      ? Theme.of(context).highlightColor
-                      : null,
-                  foregroundColor:
-                      _selectedAnswer == YesNoAnswer.no ? Colors.white : null,
-                ),
-                child: const Text('No'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: ElevatedButton(
-                onPressed: () => _selectCannotAnswer(),
+                onPressed: () => _markDone(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      _cannotAnswer ? Theme.of(context).highlightColor : null,
-                  foregroundColor: _cannotAnswer ? Colors.white : null,
+                      _isDone ? Theme.of(context).highlightColor : null,
+                  foregroundColor: _isDone ? Colors.white : null,
                 ),
-                child: const Text('Cannot Answer'),
+                child: const Text('Done'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: ElevatedButton(
+                onPressed: () => _markCannotComplete(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      _cannotComplete ? Theme.of(context).highlightColor : null,
+                  foregroundColor: _cannotComplete ? Colors.white : null,
+                ),
+                child: const Text('Cannot Complete'),
               ),
             ),
           ],
         ),
-        if (_cannotAnswer)
+        if (_cannotComplete)
           Padding(
             padding: const EdgeInsets.only(top: 4.0),
             child: TextField(
               controller: _reasonController,
               decoration: const InputDecoration(
-                labelText: 'Reason for no answer',
+                labelText: 'Reason for not completing',
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,

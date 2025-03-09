@@ -82,14 +82,56 @@ void seed(Realm realm) {
 
   List<Question> questionsToAdd = [];
   var random = Random();
-  for (var i = 1; i <= 32; i++) {
+  for (var i = 1; i <= 128; i++) {
+    final questionType =
+        QuestionType.values[random.nextInt(QuestionType.values.length)];
+    final userType = UserType.values[random.nextInt(UserType.values.length)];
+    var choices = <String>[];
+
+    if (questionType == QuestionType.multipleChoice) {
+      final numChoices = random.nextInt(4) + 2;
+      for (var j = 1; j <= numChoices; j++) {
+        if (random.nextInt(3) == 0) {
+          // Some have longer text.
+          choices.add('Choice $j lorem ipsum dolor sit amet consectetur');
+        } else {
+          choices.add('Choice $j');
+        }
+      }
+    }
+
+    var friendlyTypeName = questionType.name;
+
+    switch (questionType) {
+      case QuestionType.yesNo:
+        friendlyTypeName = 'yes/no';
+        break;
+      case QuestionType.multipleChoice:
+        friendlyTypeName = 'multiple choice';
+        break;
+      case QuestionType.text:
+        friendlyTypeName = 'text';
+        break;
+      case QuestionType.checklist:
+        friendlyTypeName = 'checklist';
+        break;
+    }
+
+    var questionText = 'Example $friendlyTypeName question.';
+    if (random.nextInt(3) == 0) {
+      // Some have longer text.
+
+      questionText =
+          'Example ${questionType.name} question. Lorem ipsum dolor sit amet consectetur adipiscing elit.';
+    }
+
     questionsToAdd.add(
       QuestionFactory.create(
         id: i,
-        questionType:
-            QuestionType.values[random.nextInt(QuestionType.values.length)],
-        userType: UserType.values[random.nextInt(UserType.values.length)],
-        questionText: 'Example question $i.',
+        questionType: questionType,
+        userType: userType,
+        questionText: questionText,
+        choices: choices,
       ),
     );
   }
