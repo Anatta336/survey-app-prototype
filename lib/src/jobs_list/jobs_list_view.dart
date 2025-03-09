@@ -1,27 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_prototype/src/job_detail/job_detail_view.dart';
+import 'package:survey_prototype/src/user/user_controller.dart';
 
 import 'jobs_list_controller.dart';
 
 /// Displays a list of Jobs.
 class JobsListView extends StatelessWidget {
+  static const routeName = '/jobs';
+
   const JobsListView({
     super.key,
   });
 
-  static const routeName = '/jobs';
-
-  // final List<Job> jobs;
-
   @override
   Widget build(BuildContext context) {
-    return Consumer<JobsListController>(
-      builder: (context, jobsListController, child) {
+    return Consumer2<JobsListController, UserController>(
+      builder: (context, jobsListController, userController, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Your Jobs'),
-            actions: const [],
+            title: Text('${userController.friendlyUserType} Jobs'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.group),
+                onPressed: userController.toggleUserType,
+              ),
+            ],
           ),
           body: ListView.builder(
             restorationId: 'jobsListView',

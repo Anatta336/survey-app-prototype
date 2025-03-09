@@ -7,14 +7,14 @@ import '../models/job_model.dart';
 
 /// Base of the job display screen.
 class JobDetailView extends StatelessWidget {
+  static const routeName = '/job';
+
   const JobDetailView({
     super.key,
     required this.job,
   });
 
   final Job job;
-
-  static const routeName = '/job';
 
   @override
   Widget build(BuildContext context) {

@@ -21,6 +21,15 @@ class UserController extends ChangeNotifier {
 
   UserType get userType => _userType;
 
+  String get friendlyUserType {
+    switch (_userType) {
+      case UserType.surveyor:
+        return 'Surveyor';
+      case UserType.engineer:
+        return 'Engineer';
+    }
+  }
+
   set userId(int value) {
     if (_userId != value) {
       _userId = value;
@@ -33,5 +42,11 @@ class UserController extends ChangeNotifier {
       _userType = value;
       notifyListeners();
     }
+  }
+
+  /// Flips between user types. In a real app we'd be fixed to whatever the logged in user is.
+  void toggleUserType() {
+    userType =
+        userType == UserType.surveyor ? UserType.engineer : UserType.surveyor;
   }
 }

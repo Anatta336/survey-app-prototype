@@ -32,7 +32,8 @@ class _JobTabBarState extends State<JobTabBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<JobController>(builder: (context, jobController, child) {
+    return Consumer2<JobController, UserController>(
+        builder: (context, jobController, userController, child) {
       return DefaultTabController(
         length: 4,
         child: Builder(builder: (BuildContext tabContext) {
@@ -41,6 +42,7 @@ class _JobTabBarState extends State<JobTabBar> {
               title: Text(
                   '${jobController.job.jobNumber} - ${jobController.job.postcode}'),
               bottom: TabBar(
+                isScrollable: true,
                 tabs: [
                   const Tab(text: 'Address'),
                   const Tab(text: 'Documents'),
@@ -48,7 +50,9 @@ class _JobTabBarState extends State<JobTabBar> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Survey'),
+                        Text(userController.userType == UserType.surveyor
+                            ? 'Survey'
+                            : 'Checklist'),
                         if (!canAccessTab(2)) const Icon(Icons.lock, size: 16),
                       ],
                     ),

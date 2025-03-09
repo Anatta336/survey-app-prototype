@@ -27,8 +27,8 @@ void main() async {
   final realm = Realm(config);
   seed(realm);
 
-  final jobsListController = JobsListController(realm);
-  await jobsListController.loadJobs();
+  final jobsListController = JobsListController(realm, userController);
+  jobsListController.refreshJobs();
 
   runApp(
     MultiProvider(
@@ -46,47 +46,86 @@ void main() async {
 
 void seed(Realm realm) {
   realm.write(() {
-    realm.add(
-      JobFactory.create(
-        id: 1,
-        surveyorId: 1,
-        engineerId: 0,
-        jobNumber: 'JOB-001',
-        addressLine1: 'Unit 15',
-        addressLine2: 'Penfold Drive',
-        addressLine3: 'Gateway 11 Business Park',
-        addressLine4: 'Wymondham',
-        postcode: 'NR18 0WZ',
-      ),
-      // If there's already a job with ID 1, overwrite it.
+    realm.deleteAll<Job>();
+    realm.addAll(
+      [
+        JobFactory.create(
+          id: 1,
+          surveyorId: 0,
+          engineerId: 1,
+          jobNumber: 'JOB-001',
+          addressLine1: 'Unit 15',
+          addressLine2: 'Penfold Drive',
+          addressLine3: 'Gateway 11 Business Park',
+          addressLine4: 'Wymondham',
+          postcode: 'NR18 0WZ',
+        ),
+        JobFactory.create(
+          id: 2,
+          surveyorId: 1,
+          engineerId: 0,
+          jobNumber: 'JOB-002',
+          addressLine1: 'Unit 1.31',
+          addressLine2: 'St. John\'s Innovation Centre',
+          addressLine3: 'Cowley Road',
+          addressLine4: 'Cambridge',
+          postcode: 'CB4 0WS',
+        ),
+        JobFactory.create(
+          id: 3,
+          surveyorId: 0,
+          engineerId: 1,
+          jobNumber: 'JOB-003',
+          addressLine1: 'Unit 1',
+          addressLine2: 'The Old Dairy',
+          addressLine3: 'Bull Lane',
+          addressLine4: 'Long Melford',
+          postcode: 'CO10 9HX',
+        ),
+        JobFactory.create(
+          id: 4,
+          surveyorId: 1,
+          engineerId: 0,
+          jobNumber: 'JOB-004',
+          addressLine1: '82 Church Street',
+          addressLine2: 'Salisbury',
+          postcode: 'SP35 5JZ',
+        ),
+        JobFactory.create(
+          id: 5,
+          surveyorId: 1,
+          engineerId: 0,
+          jobNumber: 'JOB-005',
+          addressLine1: '30 Green Lane',
+          addressLine2: 'Milton Keynes',
+          postcode: 'MK12 6HT',
+        ),
+      ],
+      // Overwrite existing jobs.
       update: true,
     );
-    realm.add(
-      JobFactory.create(
-        id: 2,
-        surveyorId: 1,
-        engineerId: 0,
-        jobNumber: 'JOB-002',
-        addressLine1: 'Unit 1.31',
-        addressLine2: 'St. John\'s Innovation Centre',
-        addressLine3: 'Cowley Road',
-        addressLine4: 'Cambridge',
-        postcode: 'CB4 0WS',
-      ),
-      update: true,
-    );
-  });
-
-  realm.write(() {
-    realm.deleteAll<Question>();
   });
 
   List<Question> questionsToAdd = [];
   var random = Random();
   for (var i = 1; i <= 128; i++) {
-    final questionType =
-        QuestionType.values[random.nextInt(QuestionType.values.length)];
     final userType = UserType.values[random.nextInt(UserType.values.length)];
+
+    final List<QuestionType> questionTypeShortlist;
+
+    if (userType == UserType.engineer) {
+      // For engineers, only select from checklist and text types.
+      questionTypeShortlist = [QuestionType.checklist, QuestionType.text];
+    } else {
+      // Surveyors don't get checklist questions.
+      questionTypeShortlist = QuestionType.values
+          .where((type) => type != QuestionType.checklist)
+          .toList();
+    }
+
+    final QuestionType questionType =
+        questionTypeShortlist[random.nextInt(questionTypeShortlist.length)];
+
     var choices = <String>[];
 
     if (questionType == QuestionType.multipleChoice) {
@@ -138,6 +177,7 @@ void seed(Realm realm) {
   }
 
   realm.write(() {
+    realm.deleteAll<Question>();
     realm.addAll<Question>(questionsToAdd, update: true);
   });
 
