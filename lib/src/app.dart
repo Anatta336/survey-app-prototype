@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'job_detail/job_detail_view.dart';
-import 'jobs_list/job_list_view.dart';
+import 'job_list/job_list_view.dart';
 import 'models/job_model.dart';
 import 'providers/realm_provider.dart';
 

@@ -41,11 +41,31 @@ class JobListController with ChangeNotifier {
         ? 'surveyorId'
         : 'engineerId';
 
-    // TODO: search all lines of address. Ideally, combining them first.
-    filteredJobs = _realm
-        .query<Job>(
-            '$userColumn == ${_userController.userId} && (jobNumber CONTAINS "$_searchText" OR postcode CONTAINS "$_searchText")')
-        .toList();
+    var userJobs =
+        _realm.query<Job>('$userColumn == ${_userController.userId}').toList();
+
+    if (_searchText.isEmpty) {
+      // No need for further filtering.
+      filteredJobs = userJobs;
+      notifyListeners();
+      return;
+    }
+
+    filteredJobs = userJobs.where((job) {
+      if (job.jobNumber.toLowerCase().contains(_searchText.toLowerCase())) {
+        return true;
+      }
+
+      final combined = [
+        job.addressLine1,
+        job.addressLine2,
+        job.addressLine3,
+        job.addressLine4,
+        job.postcode,
+      ].join(' ');
+
+      return combined.toLowerCase().contains(_searchText.toLowerCase());
+    }).toList();
 
     notifyListeners();
   }

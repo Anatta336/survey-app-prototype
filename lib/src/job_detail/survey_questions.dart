@@ -37,7 +37,10 @@ class SurveyQuestions extends StatelessWidget {
           if (index == 0) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: Text('Survey Questions ${questions.length}',
+              child: Text(
+                  userController.userType == UserType.surveyor
+                      ? 'Survey Questions'
+                      : 'Checklist',
                   style: Theme.of(context).textTheme.headlineSmall),
             );
           }

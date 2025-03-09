@@ -59,14 +59,23 @@ class _TextQuestionState extends State<TextQuestion> {
 
   void _selectCannotAnswer() {
     setState(() {
+      _answerController.clear();
       _cannotAnswer = true;
     });
-
     reportAnswer();
   }
 
   void reportAnswer() {
-    String answerText = _cannotAnswer ? 'unanswered' : _answerController.text;
+    String answerText = _answerController.text;
+
+    if (answerText.isEmpty) {
+      answerText = 'unanswered';
+    } else {
+      setState(() {
+        _cannotAnswer = false;
+      });
+    }
+
     String? reasonText = _cannotAnswer ? _reasonController.text : null;
 
     final realm = RealmProvider.of(context);
