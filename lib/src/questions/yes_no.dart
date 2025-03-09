@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:realm/realm.dart';
+import '../models/answer_model.dart';
+import '../models/job_model.dart';
+import '../models/question_model.dart';
+import '../providers/realm_provider.dart';
 
 enum YesNoAnswer {
   unanswered,
@@ -8,17 +13,17 @@ enum YesNoAnswer {
 
 /// A widget that presents a yes/no question to the user.
 class YesNoQuestion extends StatefulWidget {
-  /// The text of the question to be displayed.
-  final String questionText;
+  /// The question to be displayed.
+  final Question question;
 
-  /// Optional callback for when an answer is selected.
-  final Function(String answer, String? reasonCannot)? onAnswered;
+  /// The job associated with the question.
+  final Job job;
 
   /// Creates a yes/no question widget.
   const YesNoQuestion({
     Key? key,
-    required this.questionText,
-    this.onAnswered,
+    required this.question,
+    required this.job,
   }) : super(key: key);
 
   @override
@@ -29,6 +34,33 @@ class _YesNoQuestionState extends State<YesNoQuestion> {
   YesNoAnswer _selectedAnswer = YesNoAnswer.unanswered;
   bool _cannotAnswer = false;
   final TextEditingController _reasonController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final realm = RealmProvider.of(context);
+      final answerModel = realm
+          .query<Answer>(
+              'questionId == ${widget.question.id} && jobId == ${widget.job.id}')
+          .firstOrNull;
+
+      if (answerModel != null) {
+        setState(() {
+          if (answerModel.answer == 'unanswered' &&
+              answerModel.reasonCannot != null) {
+            _cannotAnswer = true;
+            _reasonController.text = answerModel.reasonCannot!;
+          } else {
+            _selectedAnswer = YesNoAnswer.values.firstWhere(
+                (e) => e.toString().split('.').last == answerModel.answer,
+                orElse: () => YesNoAnswer.unanswered);
+          }
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -55,12 +87,33 @@ class _YesNoQuestionState extends State<YesNoQuestion> {
   }
 
   void reportAnswer() {
-    if (widget.onAnswered == null) {
-      return;
-    }
     String answerText = _selectedAnswer.toString().split('.').last;
-    String? reason = _cannotAnswer ? _reasonController.text : null;
-    widget.onAnswered!(answerText, reason);
+    String? reasonText = _cannotAnswer ? _reasonController.text : null;
+
+    final realm = RealmProvider.of(context);
+    final answerModel = realm
+        .query<Answer>(
+            'questionId == ${widget.question.id} && jobId == ${widget.job.id}')
+        .firstOrNull;
+
+    if (answerModel != null) {
+      realm.write(() {
+        answerModel.answer = _cannotAnswer ? 'unanswered' : answerText;
+        answerModel.reasonCannot = reasonText;
+      });
+    } else {
+      realm.write(() {
+        realm.add(
+          Answer(
+            Uuid.v4().toString(),
+            widget.job.id,
+            widget.question.id,
+            _cannotAnswer ? 'unanswered' : answerText,
+            reasonCannot: reasonText,
+          ),
+        );
+      });
+    }
   }
 
   @override
@@ -69,7 +122,7 @@ class _YesNoQuestionState extends State<YesNoQuestion> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.questionText,
+          widget.question.questionText,
           style: Theme.of(context).textTheme.labelLarge,
         ),
         Row(

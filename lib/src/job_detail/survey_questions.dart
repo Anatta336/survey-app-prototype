@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:survey_prototype/src/job_detail/job_controller.dart';
 import 'package:survey_prototype/src/providers/realm_provider.dart';
 import 'package:survey_prototype/src/questions/checklist_question.dart';
 import 'package:survey_prototype/src/questions/yes_no.dart';
@@ -12,9 +13,11 @@ class SurveyQuestions extends StatelessWidget {
   const SurveyQuestions({
     Key? key,
     required this.userController,
+    required this.jobController,
   }) : super(key: key);
 
   final UserController userController;
+  final JobController jobController;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +45,7 @@ class SurveyQuestions extends StatelessWidget {
           var question = questions[index - 1];
           return Column(
             children: [
-              _buildQuestionWidget(question),
+              _buildQuestionWidget(context, question),
               if (index < questions.length)
                 const Padding(
                     padding: EdgeInsets.only(top: 16, bottom: 16),
@@ -54,42 +57,32 @@ class SurveyQuestions extends StatelessWidget {
     );
   }
 
-  Widget _buildQuestionWidget(Question question) {
+  Widget _buildQuestionWidget(BuildContext context, Question question) {
     switch (question.questionType) {
       case QuestionType.yesNo:
         return YesNoQuestion(
-          questionText: question.questionText,
-          onAnswered: _handleAnswer,
+          question: question,
+          job: jobController.job,
         );
       case QuestionType.multipleChoice:
         return MultipleChoiceQuestion(
-          questionText: question.questionText,
+          job: jobController.job,
+          question: question,
           choices: question.choices,
-          onAnswered: _handleAnswer,
         );
       case QuestionType.text:
         return TextQuestion(
-          questionText: question.questionText,
-          onAnswered: _handleAnswer,
+          question: question,
+          job: jobController.job,
         );
       case QuestionType.checklist:
         return ChecklistQuestion(
-          questionText: question.questionText,
-          onAnswered: _handleAnswer,
+          question: question,
+          job: jobController.job,
         );
       default:
         return Text(
             'Unknown question type for: [${question.id}] ${question.questionText}');
-    }
-  }
-
-  void _handleAnswer(String answer, String? reasonCannot) {
-    // realm.write(() {
-    //   // TODO: Save answer to realm
-    // });
-    print('Answered: $answer');
-    if (reasonCannot != null) {
-      print('Reason No Answer: $reasonCannot');
     }
   }
 }

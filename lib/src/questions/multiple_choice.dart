@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:realm/realm.dart';
+import 'package:survey_prototype/src/models/job_model.dart';
+import '../models/answer_model.dart';
+import '../models/question_model.dart';
+import '../providers/realm_provider.dart';
 
-/// A widget that presents a yes/no question to the user.
+/// A widget that presents a multiple choice question to the user.
 class MultipleChoiceQuestion extends StatefulWidget {
-  /// The text of the question to be displayed.
-  final String questionText;
-
+  final Question question;
   final List<String> choices;
-
-  /// Optional callback for when an answer is selected.
-  final Function(String answer, String? reasonCannot)? onAnswered;
+  final Job job;
 
   /// Creates a multiple choice question widget.
   const MultipleChoiceQuestion({
     Key? key,
-    required this.questionText,
+    required this.question,
     required this.choices,
-    this.onAnswered,
+    required this.job,
   }) : super(key: key);
 
   @override
@@ -23,13 +24,37 @@ class MultipleChoiceQuestion extends StatefulWidget {
 }
 
 class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
-  // The user's selected response
   String? _selectedAnswer;
-
   bool _cannotAnswer = false;
 
   // Controller for the reason text field
   final TextEditingController _reasonController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Wrap in a post-frame callback to ensure the full widget tree is available.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final realm = RealmProvider.of(context);
+      final answerModel = realm
+          .query<Answer>(
+              'questionId == ${widget.question.id} && jobId == ${widget.job.id}')
+          .firstOrNull;
+
+      if (answerModel != null) {
+        setState(() {
+          if (answerModel.answer == 'unanswered' &&
+              answerModel.reasonCannot != null) {
+            _cannotAnswer = true;
+            _reasonController.text = answerModel.reasonCannot!;
+          } else {
+            _selectedAnswer = answerModel.answer;
+          }
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -43,7 +68,7 @@ class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
       _cannotAnswer = false;
     });
 
-    reportAnswer();
+    _onSetAnswer();
   }
 
   void _selectCannotAnswer() {
@@ -52,17 +77,39 @@ class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
       _cannotAnswer = true;
     });
 
-    reportAnswer();
+    _onSetAnswer();
   }
 
-  void reportAnswer() {
-    if (widget.onAnswered == null) {
-      return;
+  void _onSetAnswer() {
+    String answerText = (_cannotAnswer || (_selectedAnswer == null))
+        ? 'unanswered'
+        : _selectedAnswer!;
+    String? reasonText = _cannotAnswer ? _reasonController.text : null;
+
+    final realm = RealmProvider.of(context);
+    final answerModel = realm
+        .query<Answer>(
+            'questionId == ${widget.question.id} && jobId == ${widget.job.id}')
+        .firstOrNull;
+
+    if (answerModel != null) {
+      realm.write(() {
+        answerModel.answer = answerText;
+        answerModel.reasonCannot = reasonText;
+      });
+    } else {
+      realm.write(() {
+        realm.add(
+          Answer(
+            Uuid.v4().toString(),
+            widget.job.id,
+            widget.question.id,
+            answerText,
+            reasonCannot: reasonText,
+          ),
+        );
+      });
     }
-    String answerText =
-        (_selectedAnswer != null) ? _selectedAnswer! : 'unanswered';
-    String? reason = _cannotAnswer ? _reasonController.text : null;
-    widget.onAnswered!(answerText, reason);
   }
 
   @override
@@ -72,7 +119,7 @@ class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          widget.questionText,
+          widget.question.questionText,
           style: Theme.of(context).textTheme.labelLarge,
         ),
         const SizedBox(height: 8.0),
@@ -129,7 +176,7 @@ class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
               ),
               maxLines: 2,
               onChanged: (_) {
-                reportAnswer();
+                _onSetAnswer();
               },
             ),
           ),

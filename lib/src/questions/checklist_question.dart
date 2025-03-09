@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:realm/realm.dart';
+import '../models/answer_model.dart';
+import '../models/job_model.dart';
+import '../models/question_model.dart';
+import '../providers/realm_provider.dart';
 
-/// A widget that presents a yes/no question to the user.
 class ChecklistQuestion extends StatefulWidget {
-  /// The text of the question to be displayed.
-  final String questionText;
+  final Question question;
+  final Job job;
 
-  /// Optional callback for when an answer is selected.
-  final Function(String answer, String? reasonCannot)? onAnswered;
-
-  /// Creates a yes/no question widget.
   const ChecklistQuestion({
     Key? key,
-    required this.questionText,
-    this.onAnswered,
+    required this.question,
+    required this.job,
   }) : super(key: key);
 
   @override
@@ -28,6 +28,31 @@ class _ChecklistQuestionState extends State<ChecklistQuestion> {
   void dispose() {
     _reasonController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final realm = RealmProvider.of(context);
+      final answerModel = realm
+          .query<Answer>(
+              'questionId == ${widget.question.id} && jobId == ${widget.job.id}')
+          .firstOrNull;
+
+      if (answerModel != null) {
+        setState(() {
+          if (answerModel.answer == 'Not Completed' &&
+              answerModel.reasonCannot != null) {
+            _cannotComplete = true;
+            _reasonController.text = answerModel.reasonCannot!;
+          } else {
+            _isDone = answerModel.answer == 'Done';
+          }
+        });
+      }
+    });
   }
 
   void _markDone() {
@@ -49,12 +74,33 @@ class _ChecklistQuestionState extends State<ChecklistQuestion> {
   }
 
   void reportAnswer() {
-    if (widget.onAnswered == null) {
-      return;
-    }
     String answerText = _isDone ? 'Done' : 'Not Completed';
-    String? reason = _cannotComplete ? _reasonController.text : null;
-    widget.onAnswered!(answerText, reason);
+    String? reasonText = _cannotComplete ? _reasonController.text : null;
+
+    final realm = RealmProvider.of(context);
+    final answerModel = realm
+        .query<Answer>(
+            'questionId == ${widget.question.id} && jobId == ${widget.job.id}')
+        .firstOrNull;
+
+    if (answerModel != null) {
+      realm.write(() {
+        answerModel.answer = answerText;
+        answerModel.reasonCannot = reasonText;
+      });
+    } else {
+      realm.write(() {
+        realm.add(
+          Answer(
+            Uuid.v4().toString(),
+            widget.job.id,
+            widget.question.id,
+            answerText,
+            reasonCannot: reasonText,
+          ),
+        );
+      });
+    }
   }
 
   @override
@@ -63,7 +109,7 @@ class _ChecklistQuestionState extends State<ChecklistQuestion> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.questionText,
+          widget.question.questionText,
           style: Theme.of(context).textTheme.labelLarge,
         ),
         Row(

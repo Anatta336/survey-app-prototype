@@ -38,10 +38,7 @@ void main() async {
       ],
       child: RealmProvider(
         realm: realm,
-        child: MyApp(
-          realm:
-              realm, // TODO: no need to pass it down now, can use RealmProvider.of(context)
-        ),
+        child: const MyApp(),
       ),
     ),
   );
@@ -80,6 +77,10 @@ void seed(Realm realm) {
     );
   });
 
+  realm.write(() {
+    realm.deleteAll<Question>();
+  });
+
   List<Question> questionsToAdd = [];
   var random = Random();
   for (var i = 1; i <= 128; i++) {
@@ -104,20 +105,20 @@ void seed(Realm realm) {
 
     switch (questionType) {
       case QuestionType.yesNo:
-        friendlyTypeName = 'yes/no';
+        friendlyTypeName = 'yes/no question';
         break;
       case QuestionType.multipleChoice:
-        friendlyTypeName = 'multiple choice';
+        friendlyTypeName = 'multiple choice question';
         break;
       case QuestionType.text:
-        friendlyTypeName = 'text';
+        friendlyTypeName = 'text question';
         break;
       case QuestionType.checklist:
-        friendlyTypeName = 'checklist';
+        friendlyTypeName = 'checklist item';
         break;
     }
 
-    var questionText = 'Example $friendlyTypeName question.';
+    var questionText = 'Example $friendlyTypeName.';
     if (random.nextInt(3) == 0) {
       // Some have longer text.
 

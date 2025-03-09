@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:realm/realm.dart';
 
 import 'job_detail/job_detail_view.dart';
 import 'jobs_list/jobs_list_view.dart';
 import 'models/job_model.dart';
+import 'providers/realm_provider.dart';
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
   const MyApp({
     super.key,
-    required this.realm,
   });
-
-  final Realm realm;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +49,7 @@ class MyApp extends StatelessWidget {
           builder: (BuildContext context) {
             // Inidividual jobs have their ID in route's arguments.
             if (routeSettings.name == JobDetailView.routeName) {
+              final realm = RealmProvider.of(context);
               final job = realm.find<Job>(routeSettings.arguments as int);
 
               if (job == null) {

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:realm/realm.dart';
+import '../models/answer_model.dart';
+import '../models/job_model.dart';
+import '../models/question_model.dart';
+import '../providers/realm_provider.dart';
 
-/// A widget that presents a freeform text question to the user.
 class TextQuestion extends StatefulWidget {
-  /// The text of the question to be displayed.
-  final String questionText;
+  final Question question;
+  final Job job;
 
-  /// Optional callback for when an answer is selected.
-  final Function(String answer, String? reasonCannot)? onAnswered;
-
-  /// Creates a freeform text question widget.
   const TextQuestion({
     Key? key,
-    required this.questionText,
-    this.onAnswered,
+    required this.question,
+    required this.job,
   }) : super(key: key);
 
   @override
@@ -24,6 +24,31 @@ class _TextQuestionState extends State<TextQuestion> {
 
   final TextEditingController _answerController = TextEditingController();
   final TextEditingController _reasonController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final realm = RealmProvider.of(context);
+      final answerModel = realm
+          .query<Answer>(
+              'questionId == ${widget.question.id} && jobId == ${widget.job.id}')
+          .firstOrNull;
+
+      if (answerModel != null) {
+        setState(() {
+          if (answerModel.answer == 'unanswered' &&
+              answerModel.reasonCannot != null) {
+            _cannotAnswer = true;
+            _reasonController.text = answerModel.reasonCannot!;
+          } else {
+            _answerController.text = answerModel.answer;
+          }
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -41,12 +66,33 @@ class _TextQuestionState extends State<TextQuestion> {
   }
 
   void reportAnswer() {
-    if (widget.onAnswered == null) {
-      return;
+    String answerText = _cannotAnswer ? 'unanswered' : _answerController.text;
+    String? reasonText = _cannotAnswer ? _reasonController.text : null;
+
+    final realm = RealmProvider.of(context);
+    final answerModel = realm
+        .query<Answer>(
+            'questionId == ${widget.question.id} && jobId == ${widget.job.id}')
+        .firstOrNull;
+
+    if (answerModel != null) {
+      realm.write(() {
+        answerModel.answer = answerText;
+        answerModel.reasonCannot = reasonText;
+      });
+    } else {
+      realm.write(() {
+        realm.add(
+          Answer(
+            Uuid.v4().toString(),
+            widget.job.id,
+            widget.question.id,
+            answerText,
+            reasonCannot: reasonText,
+          ),
+        );
+      });
     }
-    String answer = _cannotAnswer ? 'unanswered' : _answerController.text;
-    String? reason = _cannotAnswer ? _reasonController.text : null;
-    widget.onAnswered!(answer, reason);
   }
 
   @override
@@ -57,7 +103,7 @@ class _TextQuestionState extends State<TextQuestion> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(
-            widget.questionText,
+            widget.question.questionText,
             style: Theme.of(context).textTheme.labelLarge,
           ),
         ),

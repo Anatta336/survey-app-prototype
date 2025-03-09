@@ -81,7 +81,11 @@ class _JobTabBarState extends State<JobTabBar> {
                           )
                           .closed
                           .then((reason) {
-                        // Reset flag when SnackBar is dismissed
+                        if (!mounted) {
+                          // Widget umounted while waiting for the snackbar to finish,
+                          // so don't want to try to change state.
+                          return;
+                        }
                         setState(() {
                           _isSnackBarVisible = false;
                         });
@@ -105,7 +109,10 @@ class _JobTabBarState extends State<JobTabBar> {
 
                 Consumer<UserController>(
                   builder: (context, userController, child) {
-                    return SurveyQuestions(userController: userController);
+                    return SurveyQuestions(
+                      userController: userController,
+                      jobController: jobController,
+                    );
                   },
                 ),
 
